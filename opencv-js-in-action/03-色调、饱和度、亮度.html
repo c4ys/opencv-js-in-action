@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>色调、饱和度、亮度</title>
+</head>
+<body>
+<h1>色调、饱和度、亮度</h1>
+<p class="err" id="errorMessage"></p>
+<div>
+    <div style="margin:10px">
+        <h2>原图</h2>
+        <img id="src" src="images/02-1.png" alt="No Image"/>
+        <div>
+            H
+            <input type="range" id="trackbar1" style="min-width:300px;" min="-255" max="255" value="0"
+                   step="1"/>
+            <label id="trackbar1value"></label>
+        </div>
+        <div>
+            S
+            <input type="range" id="trackbar2" style="min-width:300px;"min="-255" max="255" value="0"
+                   step="1"/>
+            <label id="trackbar2value"></label>
+        </div>
+        <div>
+            V
+            <input type="range" id="trackbar3" style="min-width:300px;"  min="-255" max="255" value="0"
+                   step="1"/>
+            <label id="trackbar3value"></label>
+        </div>
+    </div>
+    <div style="margin:10px;">
+        <h2>结果</h2>
+        <canvas id="dest"></canvas>
+    </div>
+</div>
+<script async src="opencv-4.5.0.js" onload="onOpenCvReady();" type="text/javascript"></script>
+<script type="text/javascript">
+    function onOpenCvReady() {
+        cv['onRuntimeInitialized'] = () => {
+            updateUI();
+        };
+    }
+
+    let trackbar1 = document.getElementById('trackbar1');
+    let trackbar1value = document.getElementById('trackbar1value');
+    trackbar1.addEventListener('input', () => {
+        updateUI();
+    });
+
+
+    let trackbar2 = document.getElementById('trackbar2');
+    let trackbar2value = document.getElementById('trackbar2value');
+    trackbar2.addEventListener('input', () => {
+        updateUI();
+    });
+
+    let trackbar3 = document.getElementById('trackbar3');
+    let trackbar3value = document.getElementById('trackbar3value');
+    trackbar3.addEventListener('input', () => {
+        updateUI();
+    });
+
+    function updateVal(val, delta) {
+        let final = val + delta;
+        if (final > 255) {
+            final = 255;
+        } else if (final < 0) {
+            final = 0
+        }
+        return final;
+    }
+
+    function updateUI() {
+        trackbar1value.innerText = trackbar1.value;
+        let val1 = parseInt(trackbar1.value);
+        trackbar2value.innerText = trackbar2.value;
+        let val2 = parseInt(trackbar2.value);
+        trackbar3value.innerText = trackbar3.value;
+        let val3 = parseInt(trackbar3.value);
+        let src1 = cv.imread(document.getElementById('src'));
+        let src1t = new cv.Mat();
+        cv.cvtColor(src1, src1t, cv.COLOR_BGR2HSV, 0);
+        let srcHsvPlanes = new cv.MatVector();
+        let destHsvPlanes = new cv.MatVector();
+        cv.split(src1t, srcHsvPlanes);
+        let H = srcHsvPlanes.get(0);
+        let S = srcHsvPlanes.get(1);
+        let V = srcHsvPlanes.get(2);
+        let H2 = H.clone();
+        let S2 = S.clone();
+        let V2 = V.clone();
+        for (var y = 0; y < src1.rows; y++) {
+            for (var x = 0; x < src1.cols; x++) {
+                H2.ucharPtr(y, x)[0] = updateVal(H.ucharPtr(y, x)[0], val1);
+                S2.ucharPtr(y, x)[0] = updateVal(S.ucharPtr(y, x)[0], val2);
+                V2.ucharPtr(y, x)[0] = updateVal(V.ucharPtr(y, x)[0], val3);
+            }
+        }
+        destHsvPlanes.push_back(H2);
+        destHsvPlanes.push_back(S2);
+        destHsvPlanes.push_back(V2);
+        cv.merge(destHsvPlanes, src1t);
+        let dest = new cv.Mat();
+        cv.cvtColor(src1t, dest, cv.COLOR_HSV2BGR, 0);
+        cv.imshow('dest', dest);
+        src1.delete();
+        src1t.delete();
+        srcHsvPlanes.delete();
+        srcHsvPlanes.delete();
+        hsvPlanes.delete();
+
+    }
+
+</script>
+</body>
+</html>
