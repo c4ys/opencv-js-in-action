@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>扫描图片去背景-阀值法</title>
+</head>
+<body>
+<h1>扫描图片去背景-阀值法</h1>
+<p id="status">OpenCV.js is loading...</p>
+<div style="margin:10px">
+    <h2>原图</h2>
+    <div style="margin-bottom: 20px;">
+        <input type="file" id="file">
+    </div>
+    <img id="src" src="images/08-1.jpg" style="max-width: 60vw;"/>
+</div>
+<div style="margin:10px">
+    <h2>灰度</h2>
+    <canvas id="gray"></canvas>
+</div>
+<div style="margin:10px">
+    <h2>直方图</h2>
+    <canvas id="hist"></canvas>
+</div>
+<!--<div style="margin:10px">-->
+<!--    <h2>开运算去外部杂点</h2>-->
+<!--    <canvas id="open"></canvas>-->
+<!--</div>-->
+<!--<div style="margin:10px">-->
+<!--    <h2>闭运算去内部杂点</h2>-->
+<!--    <canvas id="close"></canvas>-->
+<!--</div>-->
+<!--<div style="margin:10px">-->
+<!--    <h2>过滤器</h2>-->
+<!--    <canvas id="mask"></canvas>-->
+<!--</div>-->
+<div style="margin:10px">
+    <h2>最终结果</h2>
+    <canvas id="dst"></canvas>
+</div>
+<h2>参考</h2>
+<ol>
+    <li><a target="_blank" href="https://www.zhihu.com/question/51786114">怎么去掉文件照片中的背景杂色，把底色变白？</a></li>
+    <li><a target="_blank" href="https://docs.opencv.org/4.5.5/d4/d76/tutorial_js_morphological_ops.html">Opencv.js
+        形态变换</a></li>
+    <li><a target="_blank" href="https://jingyan.baidu.com/article/922554468bf465851748f459.html">教您怎样对扫描文件去除底色</a></li>
+</ol>
+
+
+<script async src="opencv-4.5.0.js" onload="onOpenCvReady();" type="text/javascript"></script>
+<script type="text/javascript">
+
+    let fileInput = document.getElementById('file');
+    let srcElm = document.getElementById('src');
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) {
+            srcElm.src = URL.createObjectURL(e.target.files[0]);
+        }
+    }, false);
+    srcElm.onload = function () {
+        tryIt();
+    };
+
+    function tryIt() {
+        let src = cv.imread(srcElm);
+        // 灰度图
+        let gray = new cv.Mat();
+        cv.cvtColor(src, gray, cv.COLOR_BGR2GRAY, 0);
+        cv.imshow('gray', gray);
+        // 直方图
+        let srcVec = new cv.MatVector();
+        srcVec.push_back(src);
+        let accumulate = false;
+        let channels = [0];
+        let histSize = [256];
+        let ranges = [0, 255];
+        let hist = new cv.Mat();
+        let mask = new cv.Mat();
+        let color = new cv.Scalar(255, 255, 255);
+        let scale = 2;
+        cv.calcHist(srcVec, channels, mask, hist, histSize, ranges, accumulate);
+        let result = cv.minMaxLoc(hist, mask);
+        let max = result.maxVal;
+        let histDst = new cv.Mat.zeros(src.rows, histSize[0] * scale,
+            cv.CV_8UC3);
+        for (let i = 0; i < histSize[0]; i++) {
+            let binVal = hist.data32F[i] * src.rows / max;
+            let point1 = new cv.Point(i * scale, src.rows - 1);
+            let point2 = new cv.Point((i + 1) * scale - 1, src.rows - binVal);
+            cv.rectangle(histDst, point1, point2, color, cv.FILLED);
+        }
+        cv.imshow('hist', histDst);
+    }
+
+    function onOpenCvReady() {
+        document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+        cv['onRuntimeInitialized'] = () => {
+            tryIt();
+        };
+    }
+</script>
+</body>
+</html>
