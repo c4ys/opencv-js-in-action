@@ -9,6 +9,9 @@
 <p id="status">OpenCV.js is loading...</p>
 <div style="margin:10px">
     <h2>原图</h2>
+    <div style="margin-bottom: 20px;">
+        <input type="file" id="file">
+    </div>
     <img id="src" src="images/08-1.jpg"/>
 </div>
 <div style="margin:10px">
@@ -27,7 +30,7 @@
     <h2>阈值</h2>
     <div>
         参数1<input type="range" id="blockSize" oninput="tryIt()" value="101" min="1" max="301" step="2"
-                   style="min-width: 300px;"/><label id="blockSizeLabel"></label>
+                  style="min-width: 300px;"/><label id="blockSizeLabel"></label>
     </div>
     <div>
         参数2<input type="range" id="CSize" oninput="tryIt()" value="20" min="0" max="50" step="2"
@@ -54,7 +57,8 @@
 <h2>参考</h2>
 <ol>
     <li><a target="_blank" href="https://www.zhihu.com/question/51786114">怎么去掉文件照片中的背景杂色，把底色变白？</a></li>
-    <li><a target="_blank" href="https://docs.opencv.org/4.5.5/d4/d76/tutorial_js_morphological_ops.html">Opencv.js 形态变换</a></li>
+    <li><a target="_blank" href="https://docs.opencv.org/4.5.5/d4/d76/tutorial_js_morphological_ops.html">Opencv.js
+        形态变换</a></li>
     <li><a target="_blank" href="https://jingyan.baidu.com/article/922554468bf465851748f459.html">教您怎样对扫描文件去除底色</a></li>
 </ol>
 
@@ -62,8 +66,18 @@
 <script async src="opencv-4.5.0.js" onload="onOpenCvReady();" type="text/javascript"></script>
 <script type="text/javascript">
 
+    let fileInput = document.getElementById('file');
+    let srcElm = document.getElementById('src');
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) {
+            srcElm.src = URL.createObjectURL(e.target.files[0]);
+        }
+    }, false);
+    srcElm.onload = function () {
+        tryIt();
+    };
     function tryIt() {
-        let src = cv.imread(document.getElementById('src'));
+        let src = cv.imread(srcElm);
         let gray = new cv.Mat();
         let blur = new cv.Mat();
         let threshold = new cv.Mat();
@@ -71,7 +85,7 @@
         let close = new cv.Mat();
         let mask = new cv.Mat();
         let dst = new cv.Mat();
-        cv.cvtColor(src, gray, cv.COLOR_BGRA2GRAY, 0);
+        cv.cvtColor(src, gray, cv.COLOR_BGR2GRAY, 0);
         cv.imshow('gray', gray);
         let blueSize = parseInt(document.getElementById('blurSize').value);
         document.getElementById('blurSizeLabel').innerText = blueSize;
