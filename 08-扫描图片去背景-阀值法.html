@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>扫描图片去背景-阀值法</title>
+</head>
+<body>
+<h1>扫描图片去背景-阀值法</h1>
+<p id="status">OpenCV.js is loading...</p>
+<div style="margin:10px">
+    <h2>原图</h2>
+    <img id="src" src="images/08-1.jpg"/>
+</div>
+<div style="margin:10px">
+    <h2>灰度</h2>
+    <canvas id="gray"></canvas>
+</div>
+<div style="margin:10px">
+    <h2>模糊</h2>
+    <div>
+        模糊度<input type="range" id="blurSize" oninput="tryIt()" value="1" min="1" max="30" step="2"
+                  style="min-width: 300px;"/><label id="blurSizeLabel"></label>
+    </div>
+    <canvas id="blur"></canvas>
+</div>
+<div style="margin:10px">
+    <h2>阈值</h2>
+    <div>
+        参数1<input type="range" id="blockSize" oninput="tryIt()" value="101" min="1" max="301" step="2"
+                   style="min-width: 300px;"/><label id="blockSizeLabel"></label>
+    </div>
+    <div>
+        参数2<input type="range" id="CSize" oninput="tryIt()" value="20" min="0" max="50" step="2"
+                  style="min-width: 300px;"/><label id="CSizeLabel"></label>
+    </div>
+    <canvas id="threshold"></canvas>
+</div>
+<!--<div style="margin:10px">-->
+<!--    <h2>开运算去外部杂点</h2>-->
+<!--    <canvas id="open"></canvas>-->
+<!--</div>-->
+<!--<div style="margin:10px">-->
+<!--    <h2>闭运算去内部杂点</h2>-->
+<!--    <canvas id="close"></canvas>-->
+<!--</div>-->
+<!--<div style="margin:10px">-->
+<!--    <h2>过滤器</h2>-->
+<!--    <canvas id="mask"></canvas>-->
+<!--</div>-->
+<div style="margin:10px">
+    <h2>最终结果</h2>
+    <canvas id="dst"></canvas>
+</div>
+<h2>参考</h2>
+<ol>
+    <li><a target="_blank" href="https://www.zhihu.com/question/51786114">怎么去掉文件照片中的背景杂色，把底色变白？</a></li>
+    <li><a target="_blank" href="https://docs.opencv.org/4.5.5/d4/d76/tutorial_js_morphological_ops.html">Opencv.js 形态变换</a></li>
+    <li><a target="_blank" href="https://jingyan.baidu.com/article/922554468bf465851748f459.html">教您怎样对扫描文件去除底色</a></li>
+</ol>
+
+
+<script async src="opencv-4.5.0.js" onload="onOpenCvReady();" type="text/javascript"></script>
+<script type="text/javascript">
+
+    function tryIt() {
+        let src = cv.imread(document.getElementById('src'));
+        let gray = new cv.Mat();
+        let blur = new cv.Mat();
+        let threshold = new cv.Mat();
+        let open = new cv.Mat();
+        let close = new cv.Mat();
+        let mask = new cv.Mat();
+        let dst = new cv.Mat();
+        cv.cvtColor(src, gray, cv.COLOR_BGRA2GRAY, 0);
+        cv.imshow('gray', gray);
+        let blueSize = parseInt(document.getElementById('blurSize').value);
+        document.getElementById('blurSizeLabel').innerText = blueSize;
+        cv.medianBlur(gray, blur, blueSize)
+        cv.imshow('blur', blur);
+        let blockSize = parseInt(document.getElementById('blockSize').value);
+        document.getElementById('blockSizeLabel').innerText = blockSize;
+        let CSize = parseInt(document.getElementById('CSize').value);
+        document.getElementById('CSizeLabel').innerText = CSize;
+        cv.adaptiveThreshold(blur, threshold, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, blockSize, CSize);
+        cv.imshow('threshold', threshold);
+        // 可省略开闭运算
+        // let M = cv.Mat.ones(1, 2, cv.CV_8U);
+        // let anchor = new cv.Point(-1, -1);
+        // cv.morphologyEx(threshold, open, cv.MORPH_OPEN, M, anchor, 1,
+        //     cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+        // cv.imshow('open', open);
+        // cv.morphologyEx(open, close, cv.MORPH_DILATE, M, anchor, 1,
+        //     cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+        // cv.imshow('close', close);
+        // 可省略开闭运算 end
+        cv.bitwise_not(threshold, mask);
+        // cv.imshow('mask', mask);
+        cv.add(gray, mask, dst)
+        cv.imshow('dst', dst);
+        src.delete();
+        gray.delete();
+        threshold.delete();
+        blur.delete();
+        open.delete();
+        close.delete();
+        mask.delete();
+        dst.delete();
+    }
+
+    function onOpenCvReady() {
+        document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+        cv['onRuntimeInitialized'] = () => {
+            tryIt();
+        };
+    }
+</script>
+</body>
+</html>
