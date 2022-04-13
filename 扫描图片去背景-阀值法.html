@@ -65,7 +65,7 @@
 
 <script async src="opencv-4.5.0.js" onload="onOpenCvReady();" type="text/javascript"></script>
 <script type="text/javascript">
-
+    var delay;
     let fileInput = document.getElementById('file');
     let srcElm = document.getElementById('src');
     fileInput.addEventListener('change', (e) => {
@@ -77,48 +77,50 @@
         tryIt();
     };
     function tryIt() {
-        let src = cv.imread(srcElm);
-        let gray = new cv.Mat();
-        let blur = new cv.Mat();
-        let threshold = new cv.Mat();
-        let open = new cv.Mat();
-        let close = new cv.Mat();
-        let mask = new cv.Mat();
-        let dst = new cv.Mat();
-        cv.cvtColor(src, gray, cv.COLOR_BGR2GRAY, 0);
-        cv.imshow('gray', gray);
-        let blueSize = parseInt(document.getElementById('blurSize').value);
-        document.getElementById('blurSizeLabel').innerText = blueSize;
-        cv.medianBlur(gray, blur, blueSize)
-        cv.imshow('blur', blur);
-        let blockSize = parseInt(document.getElementById('blockSize').value);
-        document.getElementById('blockSizeLabel').innerText = blockSize;
-        let CSize = parseInt(document.getElementById('CSize').value);
-        document.getElementById('CSizeLabel').innerText = CSize;
-        cv.adaptiveThreshold(blur, threshold, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, blockSize, CSize);
-        cv.imshow('threshold', threshold);
-        // 可省略开闭运算
-        // let M = cv.Mat.ones(1, 2, cv.CV_8U);
-        // let anchor = new cv.Point(-1, -1);
-        // cv.morphologyEx(threshold, open, cv.MORPH_OPEN, M, anchor, 1,
-        //     cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
-        // cv.imshow('open', open);
-        // cv.morphologyEx(open, close, cv.MORPH_DILATE, M, anchor, 1,
-        //     cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
-        // cv.imshow('close', close);
-        // 可省略开闭运算 end
-        cv.bitwise_not(threshold, mask);
-        // cv.imshow('mask', mask);
-        cv.add(gray, mask, dst)
-        cv.imshow('dst', dst);
-        src.delete();
-        gray.delete();
-        threshold.delete();
-        blur.delete();
-        open.delete();
-        close.delete();
-        mask.delete();
-        dst.delete();
+        wto = setTimeout(function() {
+            let src = cv.imread(srcElm);
+            let gray = new cv.Mat();
+            let blur = new cv.Mat();
+            let threshold = new cv.Mat();
+            let open = new cv.Mat();
+            let close = new cv.Mat();
+            let mask = new cv.Mat();
+            let dst = new cv.Mat();
+            cv.cvtColor(src, gray, cv.COLOR_BGR2GRAY, 0);
+            cv.imshow('gray', gray);
+            let blueSize = parseInt(document.getElementById('blurSize').value);
+            document.getElementById('blurSizeLabel').innerText = blueSize;
+            cv.medianBlur(gray, blur, blueSize)
+            cv.imshow('blur', blur);
+            let blockSize = parseInt(document.getElementById('blockSize').value);
+            document.getElementById('blockSizeLabel').innerText = blockSize;
+            let CSize = parseInt(document.getElementById('CSize').value);
+            document.getElementById('CSizeLabel').innerText = CSize;
+            cv.adaptiveThreshold(blur, threshold, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, blockSize, CSize);
+            cv.imshow('threshold', threshold);
+            // 可省略开闭运算
+            // let M = cv.Mat.ones(1, 2, cv.CV_8U);
+            // let anchor = new cv.Point(-1, -1);
+            // cv.morphologyEx(threshold, open, cv.MORPH_OPEN, M, anchor, 1,
+            //     cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+            // cv.imshow('open', open);
+            // cv.morphologyEx(open, close, cv.MORPH_DILATE, M, anchor, 1,
+            //     cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+            // cv.imshow('close', close);
+            // 可省略开闭运算 end
+            cv.bitwise_not(threshold, mask);
+            // cv.imshow('mask', mask);
+            cv.add(gray, mask, dst)
+            cv.imshow('dst', dst);
+            src.delete();
+            gray.delete();
+            threshold.delete();
+            blur.delete();
+            open.delete();
+            close.delete();
+            mask.delete();
+            dst.delete();
+        }, 1000);
     }
 
     function onOpenCvReady() {
